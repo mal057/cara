@@ -1,0 +1,78 @@
+name: sola
+description: Sola - Privacy-First Period Tracker. All data stored locally, encrypted.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Database - encrypted SQLite ORM
+  drift: ^2.31.0
+  sqlcipher_flutter_libs: ^0.7.0
+
+  # State management
+  flutter_riverpod: ^3.2.1
+  riverpod_annotation: ^4.0.2
+
+  # Security
+  flutter_secure_storage: ^10.0.0
+  local_auth: ^3.0.0
+  crypto: ^3.0.7
+
+  # UI
+  table_calendar: ^3.2.0
+  go_router: ^17.1.0
+
+  # Notifications
+  flutter_local_notifications: ^20.1.0
+  timezone: ^0.10.0
+
+  # Export
+  csv: ^7.1.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
+  share_plus: ^12.0.1
+
+  # Utilities
+  path_provider: ^2.1.5
+  intl: ^0.20.2
+  collection: ^1.19.1
+
+  # Model codegen annotations
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  # Code generation
+  build_runner: ^2.11.1
+  drift_dev: ^2.31.0
+  freezed: ^3.2.5
+  json_serializable: ^6.13.0
+  riverpod_generator: ^4.0.3
+
+  # Testing
+  mocktail: ^1.0.4
+
+  flutter_lints: ^5.0.0
+
+# flutter_riverpod 3.x includes `test` as a runtime dependency, which conflicts with
+# Flutter 3.38.3 SDK's pin of test_api to 0.7.7. The 0.7.x test_api series is
+# patch-compatible; overriding to allow any 0.7.x lets the resolver pick test 1.29.0
+# (which uses test_api 0.7.9) while keeping flutter_test operational.
+# This is a known workaround for this Flutter/Dart SDK version combination.
+dependency_overrides:
+  test_api: '>=0.7.7 <0.8.0'
+
+flutter:
+  uses-material-design: true
+  shaders:
+    - shaders/ocean_water.frag

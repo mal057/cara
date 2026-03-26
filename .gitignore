@@ -1,0 +1,39 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Generated
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+.dart_tool/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Internal planning
+agentic/
+
+# Test artifacts
+**/test_write.txt
+
+# Pub
+pubspec.lock
