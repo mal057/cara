@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
 
@@ -152,8 +151,8 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Icon in a 120dp circle with a radial gradient from the primary
-          // color at low opacity at the centre fading to transparent at edge.
+          // Icon in a 120dp circle with a radial gradient from white
+          // at low opacity at the centre fading to transparent at edge.
           FadeTransition(
             opacity: _iconFade,
             child: SlideTransition(
@@ -167,8 +166,8 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.primary.withAlpha(26), // ~10% opacity centre
-                        AppColors.primary.withAlpha(0),  // transparent edge
+                        Colors.white.withAlpha(26), // ~10% opacity centre
+                        Colors.white.withAlpha(0),  // transparent edge
                       ],
                       stops: const [0.0, 1.0],
                     ),
@@ -176,7 +175,7 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
                   child: Icon(
                     widget.icon,
                     size: 56,
-                    color: AppColors.primary,
+                    color: Colors.white.withAlpha(220),
                   ),
                 ),
               ),
@@ -193,9 +192,16 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
               child: Text(
                 widget.headline,
                 style: AppTypography.heading2.copyWith(
-                  color: AppColors.textPrimary,
+                  color: Colors.white,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
+                  shadows: const [
+                    Shadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -204,8 +210,8 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
 
           const SizedBox(height: AppSizes.space20),
 
-          // Body — warm gray, centered, constrained width for comfortable
-          // reading line length.
+          // Body — white at high opacity, centered, constrained width for
+          // comfortable reading line length.
           FadeTransition(
             opacity: _bodyFade,
             child: SlideTransition(
@@ -215,7 +221,7 @@ class _PrivacyPledgeCardState extends State<PrivacyPledgeCard>
                 child: Text(
                   widget.body,
                   style: AppTypography.body1.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Colors.white.withAlpha(200),
                     height: 1.6,
                   ),
                   textAlign: TextAlign.center,

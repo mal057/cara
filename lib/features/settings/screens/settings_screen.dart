@@ -15,7 +15,7 @@ import '../../../services/auth/auth_service.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/notification_providers.dart';
 import '../../../providers/settings_providers.dart';
-import '../../shared/widgets/sola_scaffold.dart';
+import '../../shared/widgets/cara_scaffold.dart';
 import '../widgets/delete_data_dialog.dart';
 import '../widgets/export_section.dart';
 import '../widgets/pin_change_dialog.dart';
@@ -39,7 +39,7 @@ class SettingsScreen extends ConsumerWidget {
     final notifsAsync = ref.watch(notificationPrefsProvider);
     final authService = ref.read(authServiceProvider);
 
-    return SolaScaffold(
+    return CaraScaffold(
       title: 'Settings',
       padding: EdgeInsets.zero,
       child: ListView(
@@ -163,8 +163,12 @@ class _NotificationsSection extends StatelessWidget {
   final List<dynamic> prefs;
   final WidgetRef ref;
 
-  dynamic _pref(String type) =>
-      prefs.firstWhere((p) => p.type == type, orElse: () => null);
+  dynamic _pref(String type) {
+    for (final p in prefs) {
+      if (p.type == type) return p;
+    }
+    return null;
+  }
 
   Future<void> _toggleNotif(String type, bool enabled) async {
     final now = DateTime.now().toUtc().toIso8601String();
@@ -432,6 +436,17 @@ class _AboutSection extends StatelessWidget {
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy Policy',
           onTap: () => context.push(RouteNames.privacyPolicy),
+        ),
+        SettingsTile(
+          icon: Icons.article_outlined,
+          title: 'Open-source licenses',
+          subtitle: 'Third-party library attributions',
+          onTap: () => showLicensePage(
+            context: context,
+            applicationName: 'Cara',
+            applicationVersion: '1.0.0',
+            applicationLegalese: '© 2026 Cara. All data stored locally.',
+          ),
         ),
         SettingsTile(
           icon: Icons.info_outline_rounded,

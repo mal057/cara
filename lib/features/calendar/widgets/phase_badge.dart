@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/phase_tips.dart';
 import '../../../core/enums/cycle_phase.dart';
+import '../../../navigation/route_names.dart';
 import '../../../providers/calendar_providers.dart';
-import '../../../providers/cycle_providers.dart';
 import '../../../services/cycle/phase_calculator.dart';
 
-/// Displays the current cycle phase with name, day number, and a daily tip.
+/// Displays the cycle phase for the selected calendar date (or today when
+/// nothing is selected) with phase name, day number, a daily tip, the
+/// formatted selected date, and a "Log this day" action that navigates to
+/// the Log tab.
 ///
-/// Reads the current cycle from [currentCycleProvider] and the selected
-/// date from [selectedDateProvider]. Renders a pill-shaped card tinted with
-/// the phase colour from [PhaseCalculator.getPhaseColor].
+/// Reads the selected date from [selectedDateProvider] and its pre-computed
+/// day data from [dayDataProvider] — the same data source that powers the
+/// calendar cell colours. This guarantees the badge is always consistent
+/// with the calendar grid.
 ///
 /// Tips rotate based on [cycleDay % tip_count] so they change each day
 /// without network access.
@@ -23,31 +29,31 @@ class PhaseBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cycleAsync = ref.watch(currentCycleProvider);
+    final selectedDate = ref.watch(selectedDateProvider);
+    final dayData = ref.watch(dayDataProvider(selectedDate));
 
-    return cycleAsync.when(
-      loading: () => const _PhaseBadgeSkeleton(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (cycle) {
-        if (cycle == null) return const _NoCycleChip();
+    if (dayData == null || dayData.phase == null) {
+      return _NoCycleChip(selectedDate: selectedDate);
+    }
 
-        final today = DateTime.now();
-        final cycleDay =
-            today.difference(cycle.startDate.startOfDay).inDays + 1;
-        final phase = cycle.currentPhase ?? CyclePhase.menstrual;
-        final phaseColor = PhaseCalculator.getPhaseColor(phase);
-        final tips = kPhaseTips[phase] ?? const [];
-        final tip = tips.isEmpty
-            ? null
-            : tips[(cycleDay - 1).clamp(0, tips.length - 1) % tips.length];
+    final phase = dayData.phase!;
+    final cycleDay = dayData.cycleDay ?? 1;
+    final isPredicted = dayData.isPredicted;
+    final phaseColor = isPredicted
+        ? PhaseCalculator.getPhaseColorPredicted(phase)
+        : PhaseCalculator.getPhaseColor(phase);
+    final tips = kPhaseTips[phase] ?? const [];
+    final tip = tips.isEmpty
+        ? null
+        : tips[(cycleDay - 1).clamp(0, tips.length - 1) % tips.length];
 
-        return _PhaseBadgeCard(
-          phase: phase,
-          cycleDay: cycleDay.clamp(1, 60),
-          phaseColor: phaseColor,
-          tip: tip,
-        );
-      },
+    return _PhaseBadgeCard(
+      phase: phase,
+      cycleDay: cycleDay,
+      phaseColor: phaseColor,
+      tip: tip,
+      selectedDate: selectedDate,
+      isPredicted: isPredicted,
     );
   }
 }
@@ -62,17 +68,20 @@ class _PhaseBadgeCard extends StatelessWidget {
     required this.cycleDay,
     required this.phaseColor,
     required this.tip,
+    required this.selectedDate,
+    required this.isPredicted,
   });
 
   final CyclePhase phase;
   final int cycleDay;
   final Color phaseColor;
   final String? tip;
+  final DateTime selectedDate;
+  final bool isPredicted;
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = phaseColor.withAlpha(26);
-    final borderColor = phaseColor.withAlpha(77);
+    final formattedDate = DateFormat('EEEE, MMM d').format(selectedDate);
 
     return Semantics(
       label: '${phase.description} day $cycleDay',
@@ -83,9 +92,14 @@ class _PhaseBadgeCard extends StatelessWidget {
           vertical: AppSizes.space12,
         ),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: Color.alphaBlend(phaseColor.withAlpha(30), AppColors.surface),
           borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-          border: Border.all(color: borderColor, width: 1),
+          border: Border(
+            left: BorderSide(color: phaseColor, width: 4),
+            top: BorderSide(color: phaseColor.withAlpha(120)),
+            right: BorderSide(color: phaseColor.withAlpha(120)),
+            bottom: BorderSide(color: phaseColor.withAlpha(120)),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,13 +119,26 @@ class _PhaseBadgeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSizes.space8),
-                // Phase name
-                Text(
-                  phase.description,
-                  style: AppTypography.body1.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
+                // Phase name + optional Estimated caption
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      phase.description,
+                      style: AppTypography.body1.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (isPredicted)
+                      Text(
+                        'Estimated',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                  ],
                 ),
                 const Spacer(),
                 // Day number badge
@@ -144,6 +171,42 @@ class _PhaseBadgeCard extends StatelessWidget {
                 ),
               ),
             ],
+            const SizedBox(height: AppSizes.space12),
+            // Action row: date on left, Log this day button on right
+            Row(
+              children: [
+                Text(
+                  formattedDate,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.go(RouteNames.log),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.space8,
+                      vertical: AppSizes.space4,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: Text(
+                    'Log this day',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  label: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: AppSizes.space16,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -156,12 +219,16 @@ class _PhaseBadgeCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _NoCycleChip extends StatelessWidget {
-  const _NoCycleChip();
+  const _NoCycleChip({required this.selectedDate});
+
+  final DateTime selectedDate;
 
   @override
   Widget build(BuildContext context) {
+    final formattedDate = DateFormat('EEEE, MMM d').format(selectedDate);
+
     return Semantics(
-      label: 'Start logging to see your cycle phases',
+      label: 'No data logged for $formattedDate',
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(
@@ -169,64 +236,71 @@ class _NoCycleChip extends StatelessWidget {
           vertical: AppSizes.space12,
         ),
         decoration: BoxDecoration(
-          color: AppColors.primary.withAlpha(13),
+          color: Color.alphaBlend(AppColors.primary.withAlpha(38), AppColors.surface),
           borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-          border: Border.all(
-            color: AppColors.primary.withAlpha(51),
-            width: 1,
-          ),
+          border: Border.all(color: AppColors.primary.withAlpha(120)),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(
-              child: Icon(
-                Icons.info_outline,
-                size: AppSizes.iconSmall,
-                color: AppColors.textSecondary,
-              ),
+            Row(
+              children: [
+                Icon(
+                  Icons.water_drop_outlined,
+                  size: AppSizes.iconSmall,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: AppSizes.space8),
+                Expanded(
+                  child: Text(
+                    'No data logged',
+                    style: AppTypography.body1.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: AppSizes.space8),
-            Text(
-              'Start logging to see your cycle phases',
-              style: AppTypography.body2.copyWith(
-                color: AppColors.textSecondary,
-              ),
+            const SizedBox(height: AppSizes.space12),
+            Row(
+              children: [
+                Text(
+                  formattedDate,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.go(RouteNames.log),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.space8,
+                      vertical: AppSizes.space4,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: Text(
+                    'Log this day',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  label: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: AppSizes.space16,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-}
-
-// ---------------------------------------------------------------------------
-// _PhaseBadgeSkeleton
-// ---------------------------------------------------------------------------
-
-class _PhaseBadgeSkeleton extends StatelessWidget {
-  const _PhaseBadgeSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    // Loading skeleton is purely decorative; exclude from semantics tree
-    // to avoid an empty/unhelpful announcement.
-    return ExcludeSemantics(
-      child: Container(
-        width: double.infinity,
-        height: 72,
-        decoration: BoxDecoration(
-          color: AppColors.divider,
-          borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// DateTime startOfDay extension (local, avoids re-importing)
-// ---------------------------------------------------------------------------
-
-extension on DateTime {
-  DateTime get startOfDay => DateTime(year, month, day);
 }

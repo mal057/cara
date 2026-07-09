@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-/// Manages PIN creation and verification for the Sola app lock screen.
+/// Manages PIN creation and verification for the Cara app lock screen.
 ///
 /// PINs are never stored in plaintext. A cryptographically random 16-byte
 /// salt is generated at [setPin] time; the PIN string code units are
@@ -23,8 +23,8 @@ class PinManager {
               iOptions: _iosOptions,
             );
 
-  static const String _hashStorageKey = 'sola_pin_hash';
-  static const String _saltStorageKey = 'sola_pin_salt';
+  static const String _hashStorageKey = 'cara_pin_hash';
+  static const String _saltStorageKey = 'cara_pin_salt';
 
   /// Salt length in bytes. 16 bytes = 128 bits of entropy.
   static const int _saltLength = 16;

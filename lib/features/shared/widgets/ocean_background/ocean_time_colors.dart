@@ -11,8 +11,6 @@ class OceanPalette {
     required this.waterNear,
     required this.sunGlow,
     required this.caustic,
-    required this.foam,
-    required this.sparkle,
   });
 
   final Color skyTop;
@@ -21,8 +19,6 @@ class OceanPalette {
   final Color waterNear;
   final Color sunGlow;
   final Color caustic;
-  final Color foam;
-  final Color sparkle;
 
   /// Linearly interpolate between two palettes.
   static OceanPalette lerp(OceanPalette a, OceanPalette b, double t) {
@@ -33,8 +29,6 @@ class OceanPalette {
       waterNear: Color.lerp(a.waterNear, b.waterNear, t)!,
       sunGlow: Color.lerp(a.sunGlow, b.sunGlow, t)!,
       caustic: Color.lerp(a.caustic, b.caustic, t)!,
-      foam: Color.lerp(a.foam, b.foam, t)!,
-      sparkle: Color.lerp(a.sparkle, b.sparkle, t)!,
     );
   }
 }
@@ -53,8 +47,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF1A3040), // dark teal shore
     sunGlow: Color(0xFF9B7EC4), // lavender moonlight
     caustic: Color(0x229B7EC4), // faint moon caustics
-    foam: Color(0x66AADDEE), // ghostly pale blue foam
-    sparkle: Color(0x889B7EC4), // lavender moon sparkles
   );
 
   // --- Dawn: 4:00–7:00 ---
@@ -65,8 +57,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF2D8A80), // muted teal
     sunGlow: Color(0xFFF0C090), // peach glow
     caustic: Color(0x33F0C090), // warm peach caustics
-    foam: Color(0xAAFFEEDD), // warm cream foam
-    sparkle: Color(0xCCF0C090), // peach sparkles
   );
 
   // --- Morning: 7:00–11:00 ---
@@ -77,8 +67,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF50C8B8), // bright turquoise
     sunGlow: Color(0xFFFFE8A0), // warm yellow
     caustic: Color(0x33FFE8A0), // golden caustics
-    foam: Color(0xCCFFFFFF), // bright white foam
-    sparkle: Color(0xEEFFE8A0), // golden sparkles
   );
 
   // --- Midday: 11:00–15:00 ---
@@ -89,8 +77,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF40B8A8), // vivid teal
     sunGlow: Color(0xFFFFF0C0), // bright white-gold
     caustic: Color(0x22FFFFFF), // white caustics
-    foam: Color(0xDDFFFFFF), // crisp white foam
-    sparkle: Color(0xEEFFFFFF), // white sparkles
   );
 
   // --- Sunset: 15:00–19:00 (the hero palette) ---
@@ -101,8 +87,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF3DB8A8), // turquoise
     sunGlow: Color(0xFFEDAE5E), // golden amber
     caustic: Color(0x33EDAE5E), // golden caustics
-    foam: Color(0xCCFFFFFF), // white foam
-    sparkle: Color(0xEEEDAE5E), // golden sparkles
   );
 
   // --- Dusk: 19:00–22:00 ---
@@ -113,8 +97,6 @@ abstract class OceanTimeColors {
     waterNear: Color(0xFF285850), // dark teal
     sunGlow: Color(0xFFC8A0D0), // pale lavender
     caustic: Color(0x22C8A0D0), // lilac caustics
-    foam: Color(0x88CCCCDD), // pale lavender foam
-    sparkle: Color(0xAAC8A0D0), // lavender sparkles
   );
 
   /// Ordered list of (startHour, palette) for the 6 periods.

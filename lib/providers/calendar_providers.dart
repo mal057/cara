@@ -31,6 +31,16 @@ final monthDataCacheProvider = StateNotifierProvider<MonthDataCacheNotifier,
 class MonthDataCacheNotifier
     extends StateNotifier<Map<String, Map<DateTime, DayDataModel>>> {
   MonthDataCacheNotifier(this._ref) : super({}) {
+    // Rebuild all cached months when cycle or prediction data changes so
+    // phase colours and prediction markers appear as soon as those async
+    // providers resolve (fixes blank calendar after onboarding).
+    _ref.listen<AsyncValue<CycleModel?>>(currentCycleProvider, (prev, next) {
+      if (prev?.value != next.value) _rebuildAllCachedMonths();
+    });
+    _ref.listen<AsyncValue<CyclePredictionModel?>>(predictionProvider, (prev, next) {
+      if (prev?.value != next.value) _rebuildAllCachedMonths();
+    });
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     _loadMonthIfMissing(today);
@@ -39,7 +49,6 @@ class MonthDataCacheNotifier
   }
 
   final Ref _ref;
-
   Future<void> loadMonth(DateTime focusedMonth) async {
     final prev = DateTime(focusedMonth.year, focusedMonth.month - 1);
     final next = DateTime(focusedMonth.year, focusedMonth.month + 1);
@@ -66,23 +75,54 @@ class MonthDataCacheNotifier
   Future<void> _loadMonthIfMissing(DateTime month) async {
     final key = _monthKey(month);
     if (state.containsKey(key)) return;
+    await _reloadMonth(month);
+  }
+
+  /// Reloads a single month from the database and rebuilds its day map with
+  /// the latest cycle / prediction data. Always overwrites the cached entry.
+  Future<void> _reloadMonth(DateTime month) async {
     final CycleDao cycleDao;
     try {
       cycleDao = _ref.read(cycleDaoProvider);
     } catch (_) { return; }
-    final MonthData monthData;
-    try {
-      monthData = await cycleDao.getMonthData(month);
-    } catch (_) { return; }
-    final currentCycle = _ref.read(currentCycleProvider).value;
+
+    final results = await Future.wait([
+      cycleDao.getMonthData(month),
+      cycleDao.getAllCyclesSorted(),
+    ]);
+
+    final monthData = results[0] as MonthData;
+    final allCycles = results[1] as List<CycleModel>;
     final prediction = _ref.read(predictionProvider).value;
-    final dayMap = _buildDayMap(month, monthData, currentCycle, prediction);
-    state = Map<String, Map<DateTime, DayDataModel>>.from(state)..[key] = dayMap;
+
+    final dayMap = _buildDayMap(month, monthData, allCycles, prediction);
+    state = Map<String, Map<DateTime, DayDataModel>>.from(state)
+      ..[_monthKey(month)] = dayMap;
+  }
+
+  /// Rebuilds every currently-cached month with fresh cycle / prediction data.
+  void _rebuildAllCachedMonths() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final prev = DateTime(today.year, today.month - 1);
+    final next = DateTime(today.year, today.month + 1);
+
+    final keysToReload = <String>{
+      ...state.keys,
+      _monthKey(prev),
+      _monthKey(today),
+      _monthKey(next),
+    };
+
+    for (final monthKey in keysToReload) {
+      final parts = monthKey.split('-');
+      _reloadMonth(DateTime(int.parse(parts[0]), int.parse(parts[1])));
+    }
   }
 
   Map<DateTime, DayDataModel> _buildDayMap(
     DateTime month, MonthData monthData,
-    CycleModel? currentCycle, CyclePredictionModel? prediction) {
+    List<CycleModel> allCycles, CyclePredictionModel? prediction) {
     final lastDay = DateTime(month.year, month.month + 1, 0).day;
     final logsByDate = <String, PeriodLogModel>{};
     for (final log in monthData.periodLogs) {
@@ -100,24 +140,77 @@ class MonthDataCacheNotifier
       CyclePhase? phase;
       var isPredicted = false;
       int? cycleDay;
-      if (currentCycle != null) {
-        final dayInCycle = date.difference(currentCycle.startDate).inDays + 1;
-        if (dayInCycle >= 1) {
+
+      // Try each cycle (sorted oldest-first) to find which one this day belongs to
+      for (final cycle in allCycles) {
+        final dayInCycle = date.difference(cycle.startDate).inDays + 1;
+        if (dayInCycle < 1) continue; // Date is before this cycle started
+
+        // Determine this cycle's length
+        final cycleLength = cycle.cycleLength ??
+            (cycle.endDate != null
+                ? cycle.endDate!.difference(cycle.startDate).inDays + 1
+                : (prediction != null
+                    ? prediction.predictedStart.difference(cycle.startDate).inDays
+                    : 28));
+        final periodLength = cycle.periodLength ?? 5;
+
+        if (dayInCycle >= 1 && dayInCycle <= cycleLength) {
           cycleDay = dayInCycle;
-          final cycleLength = currentCycle.cycleLength ??
-              (prediction != null
-                  ? prediction.predictedStart.difference(currentCycle.startDate).inDays
-                  : 28);
-          final periodLength = currentCycle.periodLength ?? 5;
           phase = PhaseCalculator.calculatePhaseForDay(dayInCycle, periodLength, cycleLength);
+          break; // Found the matching cycle
         }
       }
+
+      // Project the cycle pattern forward for dates beyond all known cycles.
+      // Uses the last cycle with a known cycleLength as the reference pattern.
+      // Marked as predicted since these are projected, not confirmed.
+      // Only projects AFTER the last known cycle's range — past dates with no
+      // data remain blank so the user sees them as unlogged.
+      if (phase == null && allCycles.isNotEmpty) {
+        // Find the best reference cycle (prefer one with known cycleLength)
+        CycleModel? refCycle;
+        for (int i = allCycles.length - 1; i >= 0; i--) {
+          if (allCycles[i].cycleLength != null) {
+            refCycle = allCycles[i];
+            break;
+          }
+        }
+        refCycle ??= allCycles.last;
+
+        final refCycleLength = refCycle.cycleLength ?? 28;
+        final refPeriodLength = refCycle.periodLength ?? 5;
+        final daysSinceStart = date.difference(refCycle.startDate).inDays;
+
+        // Find the end of the last known cycle's confirmed range
+        final lastCycle = allCycles.last;
+        final lastCycleLength = lastCycle.cycleLength ??
+            (lastCycle.endDate != null
+                ? lastCycle.endDate!.difference(lastCycle.startDate).inDays + 1
+                : lastCycle.periodLength ?? 5);
+        final lastCycleEnd = lastCycle.startDate.add(Duration(
+          days: lastCycleLength - 1,
+        ));
+
+        // Only project for dates after the last known cycle's range
+        if (daysSinceStart >= 0 && refCycleLength > 0 && !date.isBefore(lastCycleEnd)) {
+          final dayInProjectedCycle = (daysSinceStart % refCycleLength) + 1;
+          cycleDay = dayInProjectedCycle;
+          phase = PhaseCalculator.calculatePhaseForDay(
+            dayInProjectedCycle, refPeriodLength, refCycleLength,
+          );
+          isPredicted = true;
+        }
+      }
+
+      // Prediction overlay (predicted next period)
       if (prediction != null &&
           !date.isBefore(prediction.predictedStart) &&
           !date.isAfter(prediction.predictedEnd)) {
         isPredicted = true;
-        phase ??= CyclePhase.menstrual;
+        phase = CyclePhase.menstrual;
       }
+
       result[date] = DayDataModel(
         date: date, periodLog: periodLog, symptomEntries: symptoms,
         phase: phase, isPredicted: isPredicted, cycleDay: cycleDay,

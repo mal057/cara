@@ -19,8 +19,8 @@ import '../../../providers/calendar_providers.dart';
 import '../../../providers/cycle_providers.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/symptom_providers.dart';
-import '../../shared/widgets/sola_button.dart';
-import '../../shared/widgets/sola_scaffold.dart';
+import '../../shared/widgets/cara_button.dart';
+import '../../shared/widgets/cara_scaffold.dart';
 import '../widgets/notes_input.dart';
 import '../widgets/period_toggle.dart';
 import '../widgets/symptom_grid.dart';
@@ -296,6 +296,38 @@ class _LogScreenState extends ConsumerState<LogScreen> {
   }
 
   // ---------------------------------------------------------------------------
+  // Date picking
+  // ---------------------------------------------------------------------------
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _editingDate,
+      firstDate: DateTime(now.year - 2, now.month, now.day),
+      lastDate: now,
+      helpText: 'Select a date to log',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.primary,
+                  onPrimary: AppColors.surface,
+                  surface: AppColors.surface,
+                  onSurface: AppColors.textPrimary,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && mounted) {
+      final normalized = DateTime(picked.year, picked.month, picked.day);
+      ref.read(selectedDateProvider.notifier).state = normalized;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------
 
@@ -308,8 +340,60 @@ class _LogScreenState extends ConsumerState<LogScreen> {
           .addPostFrameCallback((_) => _loadExistingData());
     }
 
-    return SolaScaffold(
-      title: _formatDate(selectedDate),
+    return CaraScaffold(
+      titleWidget: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left_rounded),
+            color: AppColors.textPrimary,
+            iconSize: AppSizes.iconMedium,
+            onPressed: () {
+              final prev = _editingDate.subtract(const Duration(days: 1));
+              ref.read(selectedDateProvider.notifier).state = prev;
+            },
+            tooltip: 'Previous day',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          const SizedBox(width: AppSizes.space4),
+          GestureDetector(
+            onTap: _pickDate,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _formatDate(selectedDate),
+                  style: AppTypography.heading3,
+                ),
+                const SizedBox(width: AppSizes.space4),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: AppSizes.iconSmall,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSizes.space4),
+          IconButton(
+            icon: const Icon(Icons.chevron_right_rounded),
+            color: AppColors.textPrimary,
+            iconSize: AppSizes.iconMedium,
+            onPressed: () {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              if (_editingDate.isBefore(today)) {
+                final next = _editingDate.add(const Duration(days: 1));
+                ref.read(selectedDateProvider.notifier).state = next;
+              }
+            },
+            tooltip: 'Next day',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
       resizeToAvoidBottomInset: true,
       child: _isLoading
           ? const Center(
@@ -363,7 +447,7 @@ class _LogScreenState extends ConsumerState<LogScreen> {
             ),
           ],
           const SizedBox(height: AppSizes.space24),
-          SolaButton(
+          CaraButton(
             label: 'Save',
             icon: Icons.check,
             isFullWidth: true,

@@ -8,9 +8,8 @@ import '../../../core/constants/app_typography.dart';
 import '../../../core/extensions/date_extensions.dart';
 import '../../../providers/calendar_providers.dart';
 import 'day_cell.dart';
-import 'day_detail_sheet.dart';
 
-/// Wraps [TableCalendar] with Sola-specific custom builders and providers.
+/// Wraps [TableCalendar] with Cara-specific custom builders and providers.
 ///
 /// - [CalendarBuilders.defaultBuilder] renders [DayCell]
 /// - [CalendarBuilders.selectedBuilder] renders selected [DayCell]
@@ -19,8 +18,6 @@ import 'day_detail_sheet.dart';
 ///
 /// Month data is pre-fetched via [MonthDataCacheNotifier.loadMonth] on
 /// [onPageChanged] so every [DayCell] build is an O(1) map lookup.
-///
-/// Tapping a day opens [DayDetailSheet] as a modal bottom sheet.
 class CycleCalendar extends ConsumerWidget {
   const CycleCalendar({super.key});
 
@@ -36,6 +33,7 @@ class CycleCalendar extends ConsumerWidget {
       selectedDayPredicate: (day) => day.isSameDay(selectedDate),
       calendarFormat: CalendarFormat.month,
       availableCalendarFormats: const {CalendarFormat.month: ''},
+      availableGestures: AvailableGestures.horizontalSwipe,
       startingDayOfWeek: StartingDayOfWeek.monday,
       sixWeekMonthsEnforced: false,
       // Header styling
@@ -107,11 +105,13 @@ class CycleCalendar extends ConsumerWidget {
           selectedDay.year, selectedDay.month, selectedDay.day);
         ref.read(selectedDateProvider.notifier).state = normalized;
         ref.read(focusedMonthProvider.notifier).state = focusedDay;
-        final dayData = ref.read(dayDataProvider(normalized));
-        DayDetailSheet.show(context, normalized, dayData);
       },
       onPageChanged: (focusedDay) {
         ref.read(focusedMonthProvider.notifier).state = focusedDay;
+        // Keep selected date in sync with the visible month so the PhaseBadge
+        // always shows data from a cached month.
+        final firstOfMonth = DateTime(focusedDay.year, focusedDay.month, 1);
+        ref.read(selectedDateProvider.notifier).state = firstOfMonth;
         ref.read(monthDataCacheProvider.notifier).loadMonth(focusedDay);
       },
     );

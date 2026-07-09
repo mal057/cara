@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:drift/drift.dart' show Value;
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -6,14 +7,17 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/enums/flow_intensity.dart';
 import '../../../data/database/daos/cycle_dao.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/database/tables/cycles_table.dart';
 import '../../../navigation/route_names.dart';
 import '../../../providers/auth_providers.dart';
+import '../../../providers/calendar_providers.dart';
+import '../../../providers/cycle_providers.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/settings_providers.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 import '../../shared/widgets/ocean_background/ocean_background.dart';
 import '../widgets/cycle_length_slider.dart';
 import '../widgets/confetti_widget.dart';
@@ -81,44 +85,59 @@ class _CycleSetupScreenState extends ConsumerState<CycleSetupScreen> {
   }
 
   Future<void> _onSave() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() { _isLoading = true; _errorMessage = null; });
     try {
-      final db = ref.read(databaseProvider).value;
-      if (db == null) throw StateError('Database not available');
-
+      final db = ref.read(databaseProvider).requireValue;
       final cycleDao = ref.read(cycleDaoProvider);
+      final periodLogDao = ref.read(periodLogDaoProvider);
       final settingsDao = ref.read(settingsDaoProvider);
 
       final now = DateTime.now().toUtc().toIso8601String();
       final startDate = DateTime(
-        _lastPeriodDate.year,
-        _lastPeriodDate.month,
-        _lastPeriodDate.day,
+        _lastPeriodDate.year, _lastPeriodDate.month, _lastPeriodDate.day,
       ).toIso8601String().substring(0, 10);
 
-      await cycleDao.insertCycle(
-        CyclesTableCompanion.insert(
-          startDate: startDate,
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      await db.transaction(() async {
+        final cycleId = await cycleDao.insertCycle(
+          CyclesTableCompanion.insert(
+            startDate: startDate,
+            periodLength: Value(_periodLength),
+            cycleLength: Value(_cycleLength),
+            createdAt: now, updatedAt: now,
+          ),
+        );
 
-      await settingsDao.setSetting(
-        kSettingDefaultCycleLength,
-        _cycleLength.toString(),
-      );
-      await settingsDao.setSetting(
-        kSettingDefaultPeriodLength,
-        _periodLength.toString(),
-      );
+        for (int i = 0; i < _periodLength; i++) {
+          final logDay = DateTime(
+            _lastPeriodDate.year, _lastPeriodDate.month, _lastPeriodDate.day + i,
+          );
+          await periodLogDao.insertLog(PeriodLogsTableCompanion(
+            date: Value(logDay.toIso8601String().substring(0, 10)),
+            flowIntensity: Value(FlowIntensity.medium.name),
+            cycleId: Value(cycleId),
+            createdAt: Value(now), updatedAt: Value(now),
+          ));
+        }
+
+        await settingsDao.setSetting(kSettingDefaultCycleLength, _cycleLength.toString());
+        await settingsDao.setSetting(kSettingDefaultPeriodLength, _periodLength.toString());
+      });
+
+      // Post-save: invalidate cache so calendar reloads from DB
+      final cacheNotifier = ref.read(monthDataCacheProvider.notifier);
+      cacheNotifier.invalidateMonth(_lastPeriodDate);
+      final lastDay = _lastPeriodDate.add(Duration(days: _periodLength - 1));
+      if (lastDay.month != _lastPeriodDate.month) {
+        cacheNotifier.invalidateMonth(lastDay);
+      }
+      ref.invalidate(completedCyclesProvider);
+      // Pre-load the period month(s) so the calendar has data immediately.
+      await cacheNotifier.loadMonth(_lastPeriodDate);
 
       if (!mounted) return;
       _completeOnboarding();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('CycleSetupScreen._onSave failed: $e\n$st');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -130,11 +149,23 @@ class _CycleSetupScreenState extends ConsumerState<CycleSetupScreen> {
   void _onSkip() => _completeOnboarding();  // ignore: discarded_futures
 
   Future<void> _completeOnboarding() async {
-    // Fire confetti burst before navigating.
     _confettiKey.currentState?.play();
-    ref.read(authStateProvider.notifier).completeOnboarding();
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
+    // Wait for the Drift stream to resolve so PhaseBadge has data on mount.
+    // The transaction committed before this method was called, so the stream
+    // should already have the cycle row — this await is a safety net.
+    try {
+      await ref.read(currentCycleProvider.future).timeout(
+        const Duration(seconds: 2),
+      );
+    } catch (_) {
+      // Timeout or error — proceed anyway; PhaseBadge will show loading briefly.
+    }
+    if (!mounted) return;
+    // Set auth state and navigate together — GoRouter redirect and context.go
+    // both point to calendar, which is fine.
+    ref.read(authStateProvider.notifier).completeOnboarding();
     context.go(RouteNames.calendar);
   }
   @override
@@ -170,8 +201,8 @@ class _CycleSetupScreenState extends ConsumerState<CycleSetupScreen> {
               ),
               const SizedBox(height: AppSizes.space8),
               Text(
-                'This helps Sola give you more accurate predictions. All fields are optional.',
-                style: AppTypography.body2.copyWith(color: AppColors.textSecondary),
+                'This helps Cara give you more accurate predictions. All fields are optional.',
+                style: AppTypography.body2.copyWith(color: AppColors.textPrimary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSizes.space32),
@@ -246,7 +277,7 @@ class _CycleSetupScreenState extends ConsumerState<CycleSetupScreen> {
                 ),
               ],
               const SizedBox(height: AppSizes.space40),
-              SolaButton(
+              CaraButton(
                 label: 'Save and Continue',
                 onPressed: _isLoading ? null : _onSave,
                 isFullWidth: true,
@@ -258,7 +289,11 @@ class _CycleSetupScreenState extends ConsumerState<CycleSetupScreen> {
                   onPressed: _isLoading ? null : _onSkip,
                   child: Text(
                     'Skip for now',
-                    style: AppTypography.body2.copyWith(color: AppColors.textSecondary),
+                    style: AppTypography.body2.copyWith(
+                      color: AppColors.textPrimary,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ),

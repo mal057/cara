@@ -21,7 +21,7 @@ class EncryptionKeyManager {
           iOptions: _iosOptions,
         );
 
-  static const String _keyStorageKey = 'sola_db_encryption_key';
+  static const String _keyStorageKey = 'cara_db_encryption_key';
 
   /// Android: hardware-backed AES-GCM storage via the Android Keystore.
   ///

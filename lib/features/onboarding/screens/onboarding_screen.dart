@@ -6,7 +6,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../navigation/route_names.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 import '../../shared/widgets/ocean_background/ocean_background.dart';
 import '../widgets/privacy_pledge_card.dart';
 
@@ -24,7 +24,7 @@ class OnboardingScreen extends ConsumerWidget {
       icon: Icons.phone_locked_outlined,
       headline: 'Your data never leaves this device',
       body:
-          'Everything is stored locally. Sola works completely offline — always.',
+          'Everything is stored locally. Cara works completely offline — always.',
     ),
     _PledgeData(
       icon: Icons.wifi_off_outlined,
@@ -125,12 +125,18 @@ class _OnboardingContentState extends State<_OnboardingContent> {
               child: Column(
                 children: [
                   Text(
-                    'Sola',
+                    'Cara',
                     style: AppTypography.heading1.copyWith(
-                      color: AppColors.primary,
+                      color: Colors.white,
                       fontSize: 36,
                       letterSpacing: 4.0,
                       fontWeight: FontWeight.w700,
+                      shadows: const [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 8,
+                        ),
+                      ],
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -138,7 +144,7 @@ class _OnboardingContentState extends State<_OnboardingContent> {
                   Text(
                     'Your cycle. Your data.',
                     style: AppTypography.body2.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Colors.white.withAlpha(200),
                       letterSpacing: 0.8,
                     ),
                     textAlign: TextAlign.center,
@@ -194,7 +200,7 @@ class _OnboardingContentState extends State<_OnboardingContent> {
               ),
               child: Column(
                 children: [
-                  SolaButton(
+                  CaraButton(
                     label: _isLastPage ? 'Get Started' : 'Next',
                     onPressed: _goToNextOrStart,
                     isFullWidth: true,
@@ -213,7 +219,7 @@ class _OnboardingContentState extends State<_OnboardingContent> {
                         child: Text(
                           'Skip intro',
                           style: AppTypography.body2.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Colors.white.withAlpha(180),
                           ),
                         ),
                       ),
@@ -292,7 +298,7 @@ class _PageIndicator extends StatelessWidget {
           decoration: BoxDecoration(
             color: isActive
                 ? AppColors.primary
-                : AppColors.primary.withAlpha(51), // ~20% opacity
+                : Colors.white.withAlpha(80),
             borderRadius: BorderRadius.circular(AppSizes.radiusPill),
           ),
         );

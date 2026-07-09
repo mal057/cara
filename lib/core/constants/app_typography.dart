@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
-/// All text style constants for the Sola app.
+/// All text style constants for the Cara app.
 ///
 /// Uses the system font stack. No external font dependency required.
 /// All styles are defined against [AppColors.textPrimary] and can be

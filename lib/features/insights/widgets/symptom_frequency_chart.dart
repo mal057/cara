@@ -58,7 +58,7 @@ class SymptomFrequencyChart extends StatelessWidget {
         Text('Symptom Patterns', style: AppTypography.heading3),
         const SizedBox(height: AppSizes.space16),
         Row(children: [
-          Icon(Icons.bar_chart_rounded, size: AppSizes.iconMedium, color: AppColors.primary.withAlpha(102)),
+          ExcludeSemantics(child: Icon(Icons.bar_chart_rounded, size: AppSizes.iconMedium, color: AppColors.primary.withAlpha(102))),
           const SizedBox(width: AppSizes.space12),
           Expanded(child: Text('Log symptoms to see patterns here.', style: AppTypography.body2.copyWith(color: AppColors.textSecondary))),
         ]),

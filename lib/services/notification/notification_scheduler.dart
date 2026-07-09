@@ -20,10 +20,7 @@ const int kNotificationIdDailyReminder = 3000;
 
 /// Notification copy -- exact strings from experience.md section 6.
 const String _kPeriodApproachingTitle = 'Period Reminder';
-const String _kPeriodApproachingBody =
-    'Your period may start in about 2 days';
 const String _kFertileWindowTitle = 'Fertile Window';
-const String _kFertileWindowBody = 'You may be entering your fertile window';
 const String _kDailyReminderTitle = 'Daily Check-In';
 const String _kDailyReminderBody = 'How was your day? Tap to log';
 
@@ -50,15 +47,17 @@ class NotificationScheduler {
   // Public API
   // -------------------------------------------------------------------------
 
-  /// Schedules a period-approaching notification 2 days before
+  /// Schedules a period-approaching notification [pref.daysBefore] days before
   /// [prediction.predictedStart], firing at 09:00 local time.
   ///
   /// Silently skips scheduling if the trigger time is already in the past.
   Future<void> schedulePeriodApproaching(
     CyclePredictionModel prediction,
+    NotificationPreferenceModel pref,
   ) async {
+    final daysBefore = pref.daysBefore ?? 2;
     final notificationDate = prediction.predictedStart.subtract(
-      const Duration(days: 2),
+      Duration(days: daysBefore),
     );
     final triggerTime = DateTime(
       notificationDate.year,
@@ -71,28 +70,38 @@ class NotificationScheduler {
     await _service.scheduleNotification(
       kNotificationIdPeriodApproaching,
       _kPeriodApproachingTitle,
-      _kPeriodApproachingBody,
+      'Your period may start in about $daysBefore days',
       triggerTime,
     );
   }
 
-  /// Schedules a fertile-window notification to fire at 09:00 local time on
-  /// [prediction.fertileWindowStart].
+  /// Schedules a fertile-window notification [pref.daysBefore] days before
+  /// [prediction.fertileWindowStart], firing at 09:00 local time.
   ///
-  /// Silently skips if the fertile window start is already in the past.
-  Future<void> scheduleFertileWindow(CyclePredictionModel prediction) async {
+  /// Silently skips if the trigger time is already in the past.
+  Future<void> scheduleFertileWindow(
+    CyclePredictionModel prediction,
+    NotificationPreferenceModel pref,
+  ) async {
+    final daysBefore = pref.daysBefore ?? 0;
+    final baseDate = prediction.fertileWindowStart.subtract(
+      Duration(days: daysBefore),
+    );
     final triggerTime = DateTime(
-      prediction.fertileWindowStart.year,
-      prediction.fertileWindowStart.month,
-      prediction.fertileWindowStart.day,
+      baseDate.year,
+      baseDate.month,
+      baseDate.day,
       9,
       0,
     );
     if (triggerTime.isBefore(DateTime.now())) return;
+    final bodyText = daysBefore > 0
+        ? 'Your fertile window may start in about $daysBefore days'
+        : 'You may be entering your fertile window';
     await _service.scheduleNotification(
       kNotificationIdFertileWindow,
       _kFertileWindowTitle,
-      _kFertileWindowBody,
+      bodyText,
       triggerTime,
     );
   }
@@ -111,7 +120,7 @@ class NotificationScheduler {
     );
   }
 
-  /// Cancels all Sola notifications then reschedules based on [prediction]
+  /// Cancels all Cara notifications then reschedules based on [prediction]
   /// and [prefs].
   ///
   /// - period_approaching: requires enabled pref + non-null prediction.
@@ -131,12 +140,12 @@ class NotificationScheduler {
 
     final periodPref = prefMap[kNotificationTypePeriodApproaching];
     if (periodPref != null && periodPref.enabled && prediction != null) {
-      await schedulePeriodApproaching(prediction);
+      await schedulePeriodApproaching(prediction, periodPref);
     }
 
     final fertilePref = prefMap[kNotificationTypeFertileWindow];
     if (fertilePref != null && fertilePref.enabled && prediction != null) {
-      await scheduleFertileWindow(prediction);
+      await scheduleFertileWindow(prediction, fertilePref);
     }
 
     final dailyPref = prefMap[kNotificationTypeDailyReminder];
@@ -148,7 +157,7 @@ class NotificationScheduler {
     }
   }
 
-  /// Cancels all Sola-managed notifications by their known IDs.
+  /// Cancels all Cara-managed notifications by their known IDs.
   Future<void> cancelAll() async {
     await Future.wait([
       _service.cancelNotification(kNotificationIdPeriodApproaching),

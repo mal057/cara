@@ -18,11 +18,11 @@ class OceanContentOverlay extends StatelessWidget {
             end: Alignment.bottomCenter,
             stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
             colors: [
-              Colors.white.withAlpha(8),   // very faint at top
-              Colors.white.withAlpha(20),  // slightly stronger
-              Colors.white.withAlpha(30),  // peak in center
-              Colors.white.withAlpha(20),  // ease back
-              Colors.white.withAlpha(10),  // light at bottom
+              Colors.white.withAlpha(150),  // stronger at top for phase banner readability
+              Colors.white.withAlpha(130),  // slightly reduced
+              Colors.white.withAlpha(120),  // peak in center
+              Colors.white.withAlpha(100),  // ease back
+              Colors.white.withAlpha(50),   // slightly reduced at bottom
             ],
           ),
         ),

@@ -5,8 +5,8 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/enums/export_range.dart';
-import '../../../features/shared/widgets/sola_loading.dart';
-import '../../../features/shared/widgets/sola_scaffold.dart';
+import '../../../features/shared/widgets/cara_loading.dart';
+import '../../../features/shared/widgets/cara_scaffold.dart';
 import '../../../providers/cycle_providers.dart';
 import '../../../providers/symptom_providers.dart';
 import '../widgets/cycle_length_chart.dart';
@@ -29,7 +29,7 @@ class InsightsScreen extends ConsumerWidget {
     final cyclesAsync = ref.watch(completedCyclesProvider);
     final sympAsync = ref.watch(symptomStatsProvider(ExportRange.threeMonths));
 
-    return SolaScaffold(
+    return CaraScaffold(
       title: 'Insights',
       padding: EdgeInsets.zero,
       child: RefreshIndicator(
@@ -46,7 +46,7 @@ class InsightsScreen extends ConsumerWidget {
             const PhaseInfoCard(),
             const SizedBox(height: AppSizes.sectionGap),
             statsAsync.when(
-              loading: () => const SolaLoading.skeleton(rows: 1, rowHeight: 140),
+              loading: () => const CaraLoading.skeleton(rows: 1, rowHeight: 140),
               error: (e, _) => _ErrorCard(message: 'Could not load cycle stats.'),
               data: (stats) => stats != null
                   ? CycleSummaryCard(stats: stats)
@@ -54,16 +54,16 @@ class InsightsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSizes.sectionGap),
             predAsync.when(
-              loading: () => const SolaLoading.skeleton(rows: 1, rowHeight: 180),
+              loading: () => const CaraLoading.skeleton(rows: 1, rowHeight: 180),
               error: (e, _) => _ErrorCard(message: 'Could not load predictions.'),
               data: (prediction) => PredictionCard(
                 prediction: prediction,
-                completedCycleCount: cyclesAsync.valueOrNull?.length ?? 0,
+                completedCycleCount: cyclesAsync.value?.length ?? 0,
               ),
             ),
             const SizedBox(height: AppSizes.sectionGap),
             sympAsync.when(
-              loading: () => const SolaLoading.skeleton(rows: 1, rowHeight: 200),
+              loading: () => const CaraLoading.skeleton(rows: 1, rowHeight: 200),
               error: (e, _) => _ErrorCard(message: 'Could not load symptom data.'),
               data: (stats) {
                 final sorted = List.of(stats)..sort((a, b) => b.occurrenceCount.compareTo(a.occurrenceCount));
@@ -72,7 +72,7 @@ class InsightsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSizes.sectionGap),
             cyclesAsync.when(
-              loading: () => const SolaLoading.skeleton(rows: 1, rowHeight: 180),
+              loading: () => const CaraLoading.skeleton(rows: 1, rowHeight: 180),
               error: (e, _) => _ErrorCard(message: 'Could not load cycle history.'),
               data: (cycles) => CycleLengthChart(completedCycles: cycles),
             ),

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Privacy-first: NO android.permission.INTERNET (Sola is fully offline) -->
+    <!-- Privacy-first: NO android.permission.INTERNET (Cara is fully offline) -->
     <!-- NO android.permission.ACCESS_NETWORK_STATE -->
 
     <!-- Biometric authentication -->
@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
-        android:label="Sola"
+        android:label="Cara"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

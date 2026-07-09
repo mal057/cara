@@ -8,7 +8,7 @@ import '../../../providers/auth_providers.dart';
 import '../../../providers/database_provider.dart';
 import '../../auth/widgets/pin_input.dart';
 import '../../onboarding/widgets/pin_pad.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 
 /// The two steps in the delete-data confirmation flow.
 enum _DeleteStep { warning, pin }
@@ -171,17 +171,17 @@ class _DeleteDataDialogState extends ConsumerState<DeleteDataDialog> {
                 AppTypography.body2.copyWith(color: AppColors.textSecondary),
           ),
           const Spacer(),
-          SolaButton(
+          CaraButton(
             label: 'Delete All Data',
-            variant: SolaButtonVariant.danger,
+            variant: CaraButtonVariant.danger,
             icon: Icons.delete_forever_rounded,
             isFullWidth: true,
             onPressed: () => setState(() => _step = _DeleteStep.pin),
           ),
           const SizedBox(height: AppSizes.space12),
-          SolaButton(
+          CaraButton(
             label: 'Cancel',
-            variant: SolaButtonVariant.secondary,
+            variant: CaraButtonVariant.secondary,
             isFullWidth: true,
             onPressed: () => Navigator.of(context).pop(false),
           ),

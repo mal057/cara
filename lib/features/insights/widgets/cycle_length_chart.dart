@@ -12,6 +12,16 @@ class CycleLengthChart extends StatelessWidget {
   final List<CycleModel> completedCycles;
   static const int _maxBars = 6;
 
+  /// Builds a plain-text description of the chart data for screen readers.
+  ///
+  /// Example: "Cycle lengths from oldest to most recent: 28, 30, 27, 29 days."
+  static String _chartSemanticLabel(List<int> lengths) {
+    if (lengths.isEmpty) return 'No cycle length data available.';
+    final avg = (lengths.reduce((a, b) => a + b) / lengths.length).round();
+    final joined = lengths.map((l) => '$l').join(', ');
+    return 'Cycle lengths from oldest to most recent: $joined days. Average: $avg days.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final cycles = completedCycles.where((c) => c.cycleLength != null).toList();
@@ -25,12 +35,19 @@ class CycleLengthChart extends StatelessWidget {
       const SizedBox(height: AppSizes.space4),
       Text('Last ${recent.length} cycles', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
       const SizedBox(height: AppSizes.space16),
-      SizedBox(height: 120, child: LayoutBuilder(
-        builder: (context, constraints) => CustomPaint(
-          size: Size(constraints.maxWidth, 120),
-          painter: _CycleLengthPainter(lengths: lengths, maxLen: maxLen, minLen: minLen),
-        ),
-      )),
+      // Wrap the CustomPainter in a Semantics node so screen readers receive a
+      // text description of the data. excludeSemantics: true prevents Flutter
+      // from walking into the canvas subtree (which has nothing to find anyway).
+      Semantics(
+        label: _chartSemanticLabel(lengths),
+        excludeSemantics: true,
+        child: SizedBox(height: 120, child: LayoutBuilder(
+          builder: (context, constraints) => CustomPaint(
+            size: Size(constraints.maxWidth, 120),
+            painter: _CycleLengthPainter(lengths: lengths, maxLen: maxLen, minLen: minLen),
+          ),
+        )),
+      ),
       const SizedBox(height: AppSizes.space8),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('Oldest', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
@@ -76,6 +93,9 @@ class _CycleLengthPainter extends CustomPainter {
       final x = i * (bw + 8.0);
       canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, size.height - bh, bw, bh), const Radius.circular(4)), bp);
       final lbl = lengths[i].toString();
+      // Note: TextPainter inside CustomPainter is not affected by the system
+      // text scale factor. This is a known Flutter limitation for canvas text.
+      // The semantic label above exposes all data to screen readers.
       final tp = TextPainter(textDirection: TextDirection.ltr, text: TextSpan(text: lbl, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w500)))..layout();
       tp.paint(canvas, Offset(x + (bw - tp.width) / 2, size.height - bh - 14));
     }

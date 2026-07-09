@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// All color constants for the Sola app.
+/// All color constants for the Cara app.
 ///
 /// Use these instead of raw Color literals anywhere in the codebase.
 abstract class AppColors {

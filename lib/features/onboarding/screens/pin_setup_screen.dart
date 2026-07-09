@@ -8,7 +8,7 @@ import '../../../core/constants/app_typography.dart';
 import '../../../navigation/route_names.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../services/auth/auth_service.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 import '../../shared/widgets/ocean_background/ocean_background.dart';
 import '../widgets/pin_pad.dart';
 
@@ -130,6 +130,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
       final authService = ref.read(authServiceProvider);
       await authService.setupPin(_createPin);
       if (!mounted) return;
+      ref.read(authStateProvider.notifier).markAuthenticated();
       context.go(RouteNames.biometricSetup);
     } on ArgumentError catch (e) {
       if (!mounted) return;
@@ -235,7 +236,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: AppSizes.animFast),
                 child: _currentPin.length >= _minPinLength
-                    ? SolaButton(
+                    ? CaraButton(
                         key: const ValueKey('continue'),
                         label: _isConfirming ? 'Set PIN' : 'Continue',
                         onPressed: _isLoading ? null : _onContinueTapped,

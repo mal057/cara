@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
-import '../../shared/widgets/sola_scaffold.dart';
+import '../../shared/widgets/cara_scaffold.dart';
 
 /// Scrollable in-app privacy policy screen.
 ///
-/// Displays the full Sola privacy policy as hardcoded text. No WebView,
+/// Displays the full Cara privacy policy as hardcoded text. No WebView,
 /// no network calls. All content lives locally in this widget.
 ///
 /// Reached from Settings > About > Privacy Policy.
@@ -16,7 +16,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SolaScaffold(
+    return CaraScaffold(
       title: 'Privacy Policy',
       padding: EdgeInsets.zero,
       child: SingleChildScrollView(
@@ -32,15 +32,15 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _Section(
               title: 'The short version',
               body:
-                  'Sola knows nothing about you that you haven\'t typed in yourself. '
+                  'Cara knows nothing about you that you haven\'t typed in yourself. '
                   'Your data never leaves your phone. There is no account to create, '
                   'no server to talk to, and no company waiting to monetise your cycle data. '
                   'Everything stays on your device, encrypted.',
             ),
             const SizedBox(height: AppSizes.sectionGap),
             _Section(
-              title: 'What Sola stores',
-              body: 'Sola only saves information you deliberately enter:',
+              title: 'What Cara stores',
+              body: 'Cara only saves information you deliberately enter:',
               bullets: const [
                 'Period start and end dates',
                 'Flow intensity and color notes',
@@ -64,16 +64,16 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.sectionGap),
             _Section(
-              title: 'What Sola never does',
+              title: 'What Cara never does',
               body: 'These are promises, not fine print:',
               bullets: const [
-                'No internet connection. Sola has no INTERNET permission on Android and no App Transport Security entry on iOS. It literally cannot reach the internet.',
+                'No internet connection. Cara has no INTERNET permission on Android and no App Transport Security entry on iOS. It literally cannot reach the internet.',
                 'No analytics. No Firebase, no Mixpanel, no Amplitude, no crash reporters.',
                 'No advertising SDKs of any kind.',
-                'No location data. Sola never asks for or uses your location.',
+                'No location data. Cara never asks for or uses your location.',
                 'No device identifiers. No advertising ID, no IMEI, no MAC address.',
                 'No cloud sync. Your data is never uploaded anywhere, not even encrypted.',
-                'No telemetry. Sola does not phone home, ever.',
+                'No telemetry. Cara does not phone home, ever.',
                 'No third-party SDKs that collect data. Every dependency is open source and network-silent.',
               ],
             ),
@@ -81,7 +81,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _Section(
               title: 'Notifications',
               body:
-                  'If you enable reminders, Sola schedules local notifications entirely on-device. '
+                  'If you enable reminders, Cara schedules local notifications entirely on-device. '
                   'No notification server is involved. Notifications are generated and delivered '
                   'by your operating system using data already stored locally. '
                   'You can disable all notifications at any time in Settings.',
@@ -94,7 +94,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   'you can generate a CSV or PDF report of your cycle history. '
                   'That file is created locally and shared through your operating system\'s '
                   'standard share sheet, so you choose where it goes. '
-                  'Sola does not keep a copy and does not know where you sent it.',
+                  'Cara does not keep a copy and does not know where you sent it.',
             ),
             const SizedBox(height: AppSizes.sectionGap),
             _Section(
@@ -109,8 +109,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _Section(
               title: 'Children and privacy',
               body:
-                  'Sola is not directed at children under 13. We do not knowingly collect '
-                  'information from children. Because Sola collects nothing at all, '
+                  'Cara is not directed at children under 13. We do not knowingly collect '
+                  'information from children. Because Cara collects nothing at all, '
                   'this is straightforward: no data from anyone is ever transmitted.',
             ),
             const SizedBox(height: AppSizes.sectionGap),
@@ -126,7 +126,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               title: 'Contact',
               body:
                   'Questions, concerns, or feedback about privacy? '
-                  'Reach us at privacy@sola.app. We read every message.',
+                  'Reach us at privacy@cara.app. We read every message.',
             ),
             const SizedBox(height: AppSizes.space32),
             _EffectiveDate(),
@@ -182,7 +182,7 @@ class _PrivacyHero extends StatelessWidget {
           const SizedBox(height: AppSizes.space12),
           Text(
             'No internet. No cloud. No analytics. No accounts. '
-            'Sola is a privacy-first app in the truest sense. '
+            'Cara is a privacy-first app in the truest sense. '
             'It has no capability to collect your data even if it wanted to.',
             style: AppTypography.body2.copyWith(
               color: AppColors.textSecondary,

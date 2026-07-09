@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- INTERNET permission intentionally omitted.
-         Sola is a privacy-first, fully offline app. No network access is permitted
+         Cara is a privacy-first, fully offline app. No network access is permitted
          in any build variant. Flutter profiling tools connect via ADB local port
          forwarding and do NOT require the INTERNET manifest permission on the device. -->
 </manifest>

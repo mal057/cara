@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../shared/widgets/sola_scaffold.dart';
+import '../../shared/widgets/cara_scaffold.dart';
 import '../widgets/export_section.dart';
 
 /// Standalone export screen accessible via deep-link or from Settings.
@@ -14,7 +14,7 @@ class ExportScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const SolaScaffold(
+    return const CaraScaffold(
       title: 'Export Data',
       child: SingleChildScrollView(
         child: ExportSection(),

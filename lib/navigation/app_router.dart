@@ -14,7 +14,7 @@ import '../features/settings/screens/export_screen.dart';
 import '../features/settings/screens/privacy_policy_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/shared/widgets/ocean_background/ocean_background.dart';
-import '../features/shared/widgets/sola_bottom_nav.dart';
+import '../features/shared/widgets/cara_bottom_nav.dart';
 import '../providers/auth_providers.dart';
 import 'auth_guard.dart';
 import 'route_names.dart';
@@ -42,7 +42,7 @@ CustomTransitionPage<void> _fadePage({
 }
 
 // ---------------------------------------------------------------------------
-// Shell scaffold - wraps tabs with SolaBottomNav
+// Shell scaffold - wraps tabs with CaraBottomNav
 // ---------------------------------------------------------------------------
 
 class _ShellScaffold extends StatelessWidget {
@@ -56,8 +56,8 @@ class _ShellScaffold extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: navigationShell,
-        bottomNavigationBar: SolaBottomNav(
-          currentTab: SolaTab.values[navigationShell.currentIndex],
+        bottomNavigationBar: CaraBottomNav(
+          currentTab: CaraTab.values[navigationShell.currentIndex],
           onTabSelected: (tab) {
             navigationShell.goBranch(
               tab.index,

@@ -6,7 +6,7 @@ import 'package:local_auth/local_auth.dart';
 import 'encryption_key_manager.dart';
 import 'pin_manager.dart';
 
-/// Coordinates biometric and PIN authentication for the Sola app.
+/// Coordinates biometric and PIN authentication for the Cara app.
 ///
 /// AuthService is the single security gatekeeper for the application.
 /// It enforces that [getEncryptionKey] is only accessible after a successful
@@ -39,7 +39,7 @@ class AuthService {
   final LocalAuthentication _localAuth;
   final FlutterSecureStorage _storage;
 
-  static const String _biometricEnabledKey = 'sola_biometric_enabled';
+  static const String _biometricEnabledKey = 'cara_biometric_enabled';
 
   static const AndroidOptions _androidOptions = AndroidOptions(
     resetOnError: false,
@@ -76,7 +76,7 @@ class AuthService {
     bool success = false;
     try {
       success = await _localAuth.authenticate(
-        localizedReason: 'Authenticate to access Sola',
+        localizedReason: 'Authenticate to access Cara',
         biometricOnly: true,
         persistAcrossBackgrounding: true,
         sensitiveTransaction: true,
@@ -222,7 +222,7 @@ class AuthService {
     bool confirmed = false;
     try {
       confirmed = await _localAuth.authenticate(
-        localizedReason: 'Confirm biometric to enable for Sola',
+        localizedReason: 'Confirm biometric to enable for Cara',
         biometricOnly: true,
         persistAcrossBackgrounding: true,
         sensitiveTransaction: true,

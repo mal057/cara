@@ -3,17 +3,16 @@ import 'package:flutter/material.dart';
 
 import 'ocean_config.dart';
 import 'ocean_content_overlay.dart';
-import 'ocean_foam_layer.dart';
-import 'ocean_shader_layer.dart';
-import 'ocean_sky_gradient.dart';
-import 'ocean_time_colors.dart';
+import 'ocean_time_images.dart';
+import 'ocean_video_layer.dart';
+import 'ocean_wave_layer.dart';
 
 /// Live animated ocean background with time-of-day awareness.
 ///
 /// Wraps [child] in a full-bleed animated ocean scene:
-/// sky gradient + wave surface + foam particles + readability overlay.
+/// wave frame crossfade + readability overlay.
 ///
-/// Colors shift based on the device's local time — dawn pinks, midday
+/// Frame images shift based on the device's local time — dawn pinks, midday
 /// turquoise, sunset purples, moonlit dark blue at night.
 ///
 /// Example:
@@ -38,44 +37,33 @@ class OceanBackground extends StatefulWidget {
 }
 
 class _OceanBackgroundState extends State<OceanBackground>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  late final AnimationController _controller;
-  late OceanPalette _palette;
+    with WidgetsBindingObserver {
   Timer? _paletteTimer;
+  DateTime _currentTime = OceanTimeImages.currentTime();
+  bool _useVideo = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-
-    _palette = OceanTimeColors.forTime(DateTime.now());
     _paletteTimer = Timer.periodic(
       OceanConfig.paletteUpdateInterval,
-      (_) => _updatePalette(),
+      (_) => _updateTime(),
     );
   }
 
-  void _updatePalette() {
+  void _updateTime() {
     if (!mounted) return;
     setState(() {
-      _palette = OceanTimeColors.forTime(DateTime.now());
+      _currentTime = OceanTimeImages.currentTime();
     });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Pause animation when backgrounded to save battery.
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
-      _controller.stop();
-    } else if (state == AppLifecycleState.resumed) {
-      _controller.repeat();
-      _updatePalette(); // refresh colors on resume
+    if (state == AppLifecycleState.resumed) {
+      _updateTime();
     }
   }
 
@@ -83,7 +71,6 @@ class _OceanBackgroundState extends State<OceanBackground>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _paletteTimer?.cancel();
-    _controller.dispose();
     super.dispose();
   }
 
@@ -95,32 +82,40 @@ class _OceanBackgroundState extends State<OceanBackground>
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Layer 0+1: Sky + Water shader (or static fallback).
+        // Layer 0: Ocean background (video → PNG fallback → static image).
         RepaintBoundary(
           child: reduceMotion
-              ? OceanSkyGradient(palette: _palette)
-              : OceanShaderLayer(
-                  animation: _controller,
-                  palette: _palette,
-                ),
+              ? _StaticImageFallback(currentTime: _currentTime)
+              : _useVideo
+                  ? OceanVideoLayer(
+                      currentTime: _currentTime,
+                      onError: () => setState(() => _useVideo = false),
+                    )
+                  : OceanWaveLayer(currentTime: _currentTime),
         ),
 
-        // Layer 2: Foam particles (skip if reduced motion).
-        if (!reduceMotion)
-          RepaintBoundary(
-            child: OceanFoamLayer(
-              animation: _controller,
-              foamColor: _palette.foam,
-              sparkleColor: _palette.sparkle,
-            ),
-          ),
-
-        // Layer 3: Readability overlay.
+        // Layer 1: Readability overlay.
         const OceanContentOverlay(),
 
-        // Layer 4: App content.
+        // Layer 2: App content.
         widget.child,
       ],
+    );
+  }
+}
+
+class _StaticImageFallback extends StatelessWidget {
+  const _StaticImageFallback({required this.currentTime});
+  final DateTime currentTime;
+
+  @override
+  Widget build(BuildContext context) {
+    final (currentPeriod, _, _) = OceanTimeImages.forTime(currentTime);
+    return Image.asset(
+      OceanTimeImages.assetPath(currentPeriod, 0),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
     );
   }
 }

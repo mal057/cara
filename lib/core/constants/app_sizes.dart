@@ -1,4 +1,4 @@
-/// All spacing, radius, and dimension constants for the Sola app.
+/// All spacing, radius, and dimension constants for the Cara app.
 ///
 /// All touch targets are at least 44 dp to meet WCAG accessibility guidelines.
 abstract class AppSizes {

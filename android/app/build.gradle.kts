@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.sola.app"
+    namespace = "com.cara.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.sola.app"
+        applicationId = "com.cara.app"
         // minSdk 23 required for: BiometricPrompt API, flutter_secure_storage
         // (EncryptedSharedPreferences), and SQLCipher AES-256 hardware acceleration.
         minSdk = flutter.minSdkVersion

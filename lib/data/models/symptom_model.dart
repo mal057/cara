@@ -24,6 +24,9 @@ abstract class SymptomModel with _$SymptomModel {
     /// Flutter icon identifier string (e.g. 'Icons.mood').
     required String iconName,
 
+    /// Optional emoji string for mood symptoms. Null for non-mood symptoms.
+    String? emoji,
+
     /// Sort order for display in the symptom grid.
     required int displayOrder,
   }) = _SymptomModel;

@@ -1,4 +1,4 @@
-/// Canonical route path constants for the Sola app.
+/// Canonical route path constants for the Cara app.
 ///
 /// All [GoRouter] route definitions and [context.go] / [context.push] call
 /// sites MUST use these constants so that a single rename propagates
@@ -44,7 +44,7 @@ abstract class RouteNames {
   static const String lock = '/lock';
 
   // ---------------------------------------------------------------------------
-  // Main tabs (wrapped by StatefulShellRoute with SolaBottomNav)
+  // Main tabs (wrapped by StatefulShellRoute with CaraBottomNav)
   // ---------------------------------------------------------------------------
 
   /// Calendar tab — cycle overview, month navigation.

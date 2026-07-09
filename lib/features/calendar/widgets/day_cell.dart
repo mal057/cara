@@ -31,16 +31,16 @@ class DayCell extends StatelessWidget {
 
   Color _phaseFill(CyclePhase phase, bool predicted) {
     if (predicted) {
-      return PhaseCalculator.getPhaseColorPredicted(phase).withAlpha(77);
+      return PhaseCalculator.getPhaseColorPredicted(phase).withAlpha(120);
     }
-    return PhaseCalculator.getPhaseColor(phase).withAlpha(51);
+    return PhaseCalculator.getPhaseColor(phase).withAlpha(90);
   }
 
   Color _phaseBorder(CyclePhase phase, bool predicted) {
     if (predicted) {
-      return PhaseCalculator.getPhaseColorPredicted(phase).withAlpha(128);
+      return PhaseCalculator.getPhaseColorPredicted(phase).withAlpha(160);
     }
-    return PhaseCalculator.getPhaseColor(phase).withAlpha(153);
+    return PhaseCalculator.getPhaseColor(phase).withAlpha(180);
   }
 
   @override
@@ -87,10 +87,15 @@ class DayCell extends StatelessWidget {
                   Text(
                     '${day.day}',
                     style: AppTypography.body2.copyWith(
-                      fontWeight: isToday || isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+                      fontWeight: FontWeight.w700,
                       color: _numberColor(phase),
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withAlpha(40),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 2),

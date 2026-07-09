@@ -28,14 +28,14 @@ class ExportService {
   final PdfExporter _pdfExporter;
 
   // File name prefix used for exported files.
-  static const _filePrefix = 'sola-export';
-  static const _reportPrefix = 'sola-report';
+  static const _filePrefix = 'cara-export';
+  static const _reportPrefix = 'cara-report';
 
   /// Exports data as a UTF-8 BOM CSV file.
   ///
   /// Generates the CSV content in [Isolate.run()], writes the result to
   /// the app documents directory, and returns the [File] handle.
-  /// File name format: sola-export-YYYY-MM-DD.csv
+  /// File name format: cara-export-YYYY-MM-DD.csv
   Future<File> exportCsv(ExportRange range, ExportDataModel data) async {
     // Run CSV generation in an isolate to avoid blocking the UI
     final csvContent = await Isolate.run(() => _csvExporter.generate(data));
@@ -50,7 +50,7 @@ class ExportService {
   /// Generates the PDF bytes in [Isolate.run()] to avoid main-thread
   /// memory spikes on large datasets (Karla Note 5), writes the result to
   /// the app documents directory, and returns the [File] handle.
-  /// File name format: sola-report-YYYY-MM-DD.pdf
+  /// File name format: cara-report-YYYY-MM-DD.pdf
   Future<File> exportPdf(ExportRange range, ExportDataModel data) async {
     // Run PDF generation in an isolate -- memory-intensive (Karla Note 5)
     final pdfBytes =
@@ -72,7 +72,7 @@ class ExportService {
       mimeType: _mimeTypeForPath(file.path),
     );
     await SharePlus.instance.share(
-      ShareParams(files: [xFile], subject: 'Sola Cycle Report'),
+      ShareParams(files: [xFile], subject: 'Cara Cycle Report'),
     );
   }
 
@@ -81,7 +81,7 @@ class ExportService {
   // ---------------------------------------------------------------------------
 
   /// Builds the output [File] path in the app documents directory.
-  /// File name: sola-export-YYYY-MM-DD.csv / sola-report-YYYY-MM-DD.pdf
+  /// File name: cara-export-YYYY-MM-DD.csv / cara-report-YYYY-MM-DD.pdf
   Future<File> _buildOutputFile(ExportFormat format) async {
     final dir = await getApplicationDocumentsDirectory();
     final now = DateTime.now();

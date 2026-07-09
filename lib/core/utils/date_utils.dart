@@ -2,9 +2,9 @@ import 'package:intl/intl.dart';
 
 import '../extensions/date_extensions.dart';
 
-/// Utility functions for date ranges and formatting used throughout Sola.
-class SolaDateUtils {
-  SolaDateUtils._();
+/// Utility functions for date ranges and formatting used throughout Cara.
+class CaraDateUtils {
+  CaraDateUtils._();
 
   // ---------------------------------------------------------------------------
   // Date range helpers

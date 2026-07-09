@@ -24,7 +24,23 @@ final databaseProvider =
 class _DatabaseNotifier extends AsyncNotifier<AppDatabase> {
   @override
   Future<AppDatabase> build() async {
+    // Listen (not watch) to auth state changes. Only retry opening the
+    // database when we are currently in an error state and auth becomes
+    // ready. This avoids unnecessary rebuilds (and duplicate DB instances)
+    // when auth state changes after the database is already open.
+    ref.listen(authStateProvider, (prev, next) {
+      if (next.isAuthenticated && state is AsyncError) {
+        ref.invalidateSelf();
+      }
+    });
+
     final authService = ref.read(authServiceProvider);
+    if (!authService.isAuthenticated) {
+      throw StateError(
+        'User is not authenticated. Database will open after auth completes.',
+      );
+    }
+
     final encryptionKey = await authService.getEncryptionKey();
     if (encryptionKey == null) {
       throw StateError(

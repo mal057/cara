@@ -8,7 +8,7 @@ import '../../../core/constants/app_typography.dart';
 import '../../../navigation/route_names.dart';
 import '../../../providers/auth_providers.dart';
 import '../../../services/auth/auth_service.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 import '../../shared/widgets/ocean_background/ocean_background.dart';
 
 /// Biometric opt-in step within the onboarding wizard (skippable).
@@ -173,8 +173,8 @@ class _BiometricSetupContentState extends State<_BiometricSetupContent> {
               const SizedBox(height: AppSizes.space16),
               Text(
                 _enrolled
-                    ? 'You can now use biometrics to unlock Sola quickly.'
-                    : 'Unlock Sola with your fingerprint or face. '
+                    ? 'You can now use biometrics to unlock Cara quickly.'
+                    : 'Unlock Cara with your fingerprint or face. '
                         'Your biometric data never leaves this device.',
                 style: AppTypography.body1.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
@@ -197,7 +197,7 @@ class _BiometricSetupContentState extends State<_BiometricSetupContent> {
               ],
               const Spacer(),
               if (!_enrolled) ...[
-                SolaButton(
+                CaraButton(
                   label: 'Enable Biometrics',
                   icon: _biometricIcon(),
                   onPressed: _isLoading ? null : _onEnable,

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_providers.dart';
 import 'route_names.dart';
 
-/// Redirect logic for the Sola GoRouter auth guard.
+/// Redirect logic for the Cara GoRouter auth guard.
 ///
 /// Called on every navigation attempt (including refreshes triggered by
 /// [AuthState] changes). Returns a redirect path when the current navigation

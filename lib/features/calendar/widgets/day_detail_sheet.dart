@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
@@ -6,8 +8,11 @@ import '../../../core/constants/symptom_definitions.dart';
 import '../../../core/enums/cycle_phase.dart';
 import '../../../core/extensions/date_extensions.dart';
 import '../../../data/models/day_data_model.dart';
+import '../../../navigation/route_names.dart';
+import '../../../providers/calendar_providers.dart';
 import '../../../services/cycle/phase_calculator.dart';
 import '../../../data/models/symptom_entry_model.dart';
+import '../../shared/widgets/symptom_icon.dart';
 
 /// Modal bottom sheet showing the selected day's cycle data.
 ///
@@ -263,6 +268,7 @@ class _SymptomSummary extends StatelessWidget {
             return _SymptomChip(
               label: entry.symptom?.name ?? entry.symptomId.toString(),
               icon: def?.icon ?? Icons.circle_outlined,
+              emoji: def?.emoji,
               severity: entry.severity.displayName,
             );
           }).toList(),
@@ -276,11 +282,13 @@ class _SymptomChip extends StatelessWidget {
   const _SymptomChip({
     required this.label,
     required this.icon,
+    this.emoji,
     required this.severity,
   });
 
   final String label;
   final IconData icon;
+  final String? emoji;
   final String severity;
 
   @override
@@ -301,7 +309,7 @@ class _SymptomChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: AppSizes.iconSmall, color: AppColors.primary),
+          SymptomIcon(icon: icon, emoji: emoji, size: AppSizes.iconSmall, color: AppColors.primary),
           const SizedBox(width: AppSizes.space4),
           Text(
             label,
@@ -361,25 +369,24 @@ class _NotePreview extends StatelessWidget {
 // _LogButton
 // ---------------------------------------------------------------------------
 
-class _LogButton extends StatelessWidget {
+class _LogButton extends ConsumerWidget {
   const _LogButton({required this.date});
 
   final DateTime date;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       width: double.infinity,
       height: AppSizes.buttonHeight,
       child: ElevatedButton.icon(
         onPressed: () {
           Navigator.of(context).pop();
-          // Navigation to LogScreen with date pre-filled
-          // handled by the router when log tab is selected.
-          // Consumers can listen to selectedDateProvider.
+          ref.read(selectedDateProvider.notifier).state = date;
+          context.go(RouteNames.log);
         },
         icon: const Icon(Icons.edit_outlined, size: AppSizes.iconSmall),
-        label: Text('Log this day'),
+        label: const Text('Log this day'),
       ),
     );
   }

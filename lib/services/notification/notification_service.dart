@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -26,13 +27,13 @@ void _onDidReceiveBackgroundNotificationResponse(
 const String _kCalendarPayload = 'calendar';
 
 /// Channel identifiers for the Android notification channel.
-const String kNotificationChannelId = 'sola_reminders';
-const String kNotificationChannelName = 'Sola Reminders';
+const String kNotificationChannelId = 'cara_reminders';
+const String kNotificationChannelName = 'Cara Reminders';
 
 /// Callback signature for navigation triggered by a notification tap.
 typedef NotificationTapCallback = void Function(String? payload);
 
-/// Initializes and manages local notifications for the Sola app.
+/// Initializes and manages local notifications for the Cara app.
 ///
 /// Responsibilities:
 /// - Plugin initialization (Android channel + iOS settings + timezone data)
@@ -147,7 +148,7 @@ class NotificationService {
   /// [title] and [body] are shown in the system notification shade.
   /// [scheduledDate] is a wall-clock time in the device local timezone.
   ///
-  /// All Sola notifications embed [_kCalendarPayload] so tapping one always
+  /// All Cara notifications embed [_kCalendarPayload] so tapping one always
   /// navigates the user to the Calendar tab.
   Future<void> scheduleNotification(
     int id,
@@ -169,7 +170,7 @@ class NotificationService {
         AndroidNotificationDetails(
           kNotificationChannelId,
           kNotificationChannelName,
-          channelDescription: 'Sola period and cycle reminders',
+          channelDescription: 'Cara period and cycle reminders',
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -186,15 +187,30 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _plugin.zonedSchedule(
-      id: id,
-      title: title,
-      body: body,
-      scheduledDate: tzScheduledDate,
-      notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: _kCalendarPayload,
-    );
+    try {
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tzScheduledDate,
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: _kCalendarPayload,
+      );
+    } on PlatformException catch (_) {
+      // Exact alarms may not be permitted on Android 12+. Fall back to
+      // inexact scheduling so the notification still fires (within a few
+      // minutes of the target time).
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tzScheduledDate,
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: _kCalendarPayload,
+      );
+    }
   }
 
   /// Cancels the scheduled or displayed notification with the given [id].
@@ -240,7 +256,7 @@ class NotificationService {
         AndroidNotificationDetails(
           kNotificationChannelId,
           kNotificationChannelName,
-          channelDescription: 'Sola period and cycle reminders',
+          channelDescription: 'Cara period and cycle reminders',
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -275,7 +291,7 @@ class NotificationService {
 
   /// Loads all timezone definitions from the embedded latest_all dataset.
   ///
-  /// No network access is required, preserving Sola's offline-only design.
+  /// No network access is required, preserving Cara's offline-only design.
   /// tz.local defaults to UTC; TZDateTime.from(localDateTime, tz.local)
   /// still produces the correct epoch timestamp because it uses the
   /// DateTime's built-in UTC offset.
@@ -283,7 +299,7 @@ class NotificationService {
     tz.initializeTimeZones();
   }
 
-  /// Creates the Android notification channel for all Sola reminders.
+  /// Creates the Android notification channel for all Cara reminders.
   ///
   /// Idempotent: Android ignores duplicate createNotificationChannel calls
   /// for an existing channel ID (unless the channel was previously deleted).

@@ -122,6 +122,7 @@ class SymptomDao extends DatabaseAccessor<AppDatabase>
         s.name                AS symptom_name,
         s.category            AS category,
         s.icon_name           AS icon_name,
+        s.emoji               AS emoji,
         COUNT(*)              AS occurrence_count,
         AVG(se.severity)      AS avg_severity
       FROM symptom_entries se
@@ -146,6 +147,7 @@ class SymptomDao extends DatabaseAccessor<AppDatabase>
         symptomName: row.read<String>('symptom_name'),
         category: SymptomCategory.fromString(row.read<String>('category')),
         iconName: row.read<String>('icon_name'),
+        emoji: row.readNullable<String>('emoji'),
         occurrenceCount: row.read<int>('occurrence_count'),
         averageSeverity: row.read<double>('avg_severity'),
       );
@@ -162,6 +164,7 @@ class SymptomDao extends DatabaseAccessor<AppDatabase>
       name: row.name,
       category: SymptomCategory.fromString(row.category),
       iconName: row.iconName,
+      emoji: row.emoji,
       displayOrder: row.displayOrder,
     );
   }

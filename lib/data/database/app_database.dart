@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart';
+import 'package:sqlite3/open.dart';
 
 import 'migrations/schema_v1.dart';
+import 'migrations/schema_v2.dart';
 import 'tables/cycles_table.dart';
 import 'tables/daily_notes_table.dart';
 import 'tables/notification_preferences_table.dart';
@@ -15,10 +19,10 @@ import 'tables/symptoms_table.dart';
 
 part 'app_database.g.dart';
 
-/// SQLCipher-encrypted Drift database for Sola.
+/// SQLCipher-encrypted Drift database for Cara.
 ///
 /// All user data — cycles, period logs, symptoms, notes, settings — is stored
-/// inside a single encrypted SQLite file (`sola.db`) in the app's documents
+/// inside a single encrypted SQLite file (`cara.db`) in the app's documents
 /// directory. The 32-byte AES-256 key is supplied at open time via the static
 /// [connect] factory and passed directly to SQLCipher using the raw-key PRAGMA
 /// (no PBKDF2 derivation, per Karla Note 4 — saves ~200 ms on cold start).
@@ -46,15 +50,15 @@ class AppDatabase extends _$AppDatabase {
   // ---------------------------------------------------------------------------
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) => SchemaV1.migrate(m, this),
         onUpgrade: (m, from, to) async {
-          // Future migration steps will be added here as the schema evolves.
-          // Drift calls this when schemaVersion increases. For v1 there is
-          // nothing to do on upgrade because onCreate handles the initial state.
+          if (from < 2) {
+            await SchemaV2.migrate(m, this);
+          }
         },
         beforeOpen: (details) async {
           // Enable foreign key enforcement on every connection. SQLite/SQLCipher
@@ -72,7 +76,7 @@ class AppDatabase extends _$AppDatabase {
   // Factory — async because getApplicationDocumentsDirectory() is async
   // ---------------------------------------------------------------------------
 
-  /// Opens (or creates) the encrypted Sola database.
+  /// Opens (or creates) the encrypted Cara database.
   ///
   /// [encryptionKey] must be exactly 32 bytes — the raw AES-256 key as
   /// returned by [EncryptionKeyManager.retrieveKey]. The bytes are hex-encoded
@@ -92,26 +96,34 @@ class AppDatabase extends _$AppDatabase {
     }
 
     final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/sola.db');
+    final file = File('${dir.path}/cara.db');
 
     // Convert the raw key bytes to a 64-char lowercase hex string.
     // This is the format SQLCipher expects for the raw-key PRAGMA.
     final hexKey = _bytesToHex(encryptionKey);
 
+    // Capture the root isolate token so the background isolate can initialize
+    // platform channels (required by applyWorkaroundToOpenSqlCipherOnOldAndroidVersions).
+    final token = RootIsolateToken.instance!;
+
     return AppDatabase(
       NativeDatabase.createInBackground(
         file,
+        // isolateSetup runs on the background isolate before any database
+        // operations. We initialize platform channels, apply the SQLCipher
+        // workaround for old Android versions, then override the sqlite3
+        // open function to load libsqlcipher instead of libsqlite3.
+        isolateSetup: () async {
+          BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+          await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
+          open.overrideFor(OperatingSystem.android, openCipherOnAndroid);
+        },
         // The setup callback runs on the background isolate before Drift
         // executes any statement. We apply the key pragma here so SQLCipher
         // can decrypt the file header before the first SELECT/INSERT.
         //
         // Raw-key pragma format: PRAGMA key = "x'<64-char hex>'";
         // This bypasses PBKDF2 derivation and saves ~200 ms (Karla Note 4).
-        //
-        // The callback's parameter type (Database from package:sqlite3) is
-        // inferred by Dart — no explicit import of sqlite3 is needed here.
-        // A String is a primitive Dart type and is safely transportable across
-        // isolate boundaries — capturing hexKey in this closure is correct.
         setup: (db) {
           db.execute("PRAGMA key = \"x'$hexKey'\";");
         },

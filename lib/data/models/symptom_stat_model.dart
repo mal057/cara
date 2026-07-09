@@ -24,6 +24,9 @@ abstract class SymptomStat with _$SymptomStat {
     /// Flutter icon identifier string (from joined symptoms row).
     required String iconName,
 
+    /// Optional emoji string for mood symptoms (from joined symptoms row).
+    String? emoji,
+
     /// Number of times this symptom was logged in the requested date range.
     required int occurrenceCount,
 

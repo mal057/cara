@@ -35,8 +35,15 @@ class PhaseInfoCard extends ConsumerWidget {
   }
 
   Widget _buildCard(CycleModel cycle) {
-    final phase = cycle.currentPhase ?? CyclePhase.follicular;
-    final cycleDay = cycle.cycleDay ?? 1;
+    final today = DateTime.now();
+    final rawCycleDay =
+        today.difference(DateTime(cycle.startDate.year, cycle.startDate.month, cycle.startDate.day)).inDays + 1;
+    final cycleLength = cycle.cycleLength ?? 28;
+    final periodLength = cycle.periodLength ?? 5;
+    final cycleDay = rawCycleDay.clamp(1, cycleLength);
+    final phase = PhaseCalculator.calculatePhaseForDay(
+      cycleDay, periodLength, cycleLength,
+    );
     final phaseColor = PhaseCalculator.getPhaseColor(phase);
     final tips = kPhaseTips[phase] ?? [];
     final tip = tips.isNotEmpty
@@ -48,9 +55,19 @@ class PhaseInfoCard extends ConsumerWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: phaseColor.withAlpha(26),
+          color: AppColors.surface.withAlpha(210),
           borderRadius: BorderRadius.circular(AppSizes.radiusCard),
-          border: Border.all(color: phaseColor.withAlpha(77), width: 1.5),
+          border: Border.all(
+            color: phaseColor.withAlpha(120),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(AppSizes.cardPadding),
         child: Column(
@@ -69,7 +86,9 @@ class PhaseInfoCard extends ConsumerWidget {
                 const SizedBox(width: AppSizes.space8),
                 Text(
                   phase.description,
-                  style: AppTypography.heading3.copyWith(color: phaseColor),
+                  style: AppTypography.heading3.copyWith(
+                    color: phaseColor,
+                  ),
                 ),
                 const Spacer(),
                 Container(
@@ -93,7 +112,7 @@ class PhaseInfoCard extends ConsumerWidget {
               Text(
                 tip,
                 style: AppTypography.body2.copyWith(
-                  color: AppColors.textSecondary,
+                  color: AppColors.textPrimary.withAlpha(180),
                   height: 1.5,
                 ),
               ),

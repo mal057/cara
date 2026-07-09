@@ -229,28 +229,28 @@ class _LockScreenState extends ConsumerState<LockScreen>
           ),
           child: const Icon(
             Icons.lock_rounded,
-            color: AppColors.surface,
+            color: Colors.white,
             size: AppSizes.iconLarge,
-            semanticLabel: 'Sola app icon',
+            semanticLabel: 'Cara app icon',
           ),
         ),
 
         const SizedBox(height: AppSizes.space20),
 
-        // "Sola" wordmark with soft shadow for depth.
+        // "Cara" wordmark with soft shadow for depth.
         Text(
-          'Sola',
+          'Cara',
           textAlign: TextAlign.center,
           style: AppTypography.heading1.copyWith(
-            color: AppColors.primary,
+            color: Colors.white,
             fontSize: 36,
             fontWeight: FontWeight.w700,
             letterSpacing: 3.0,
-            shadows: [
+            shadows: const [
               Shadow(
-                color: AppColors.primary.withAlpha(45),
+                color: Colors.black38,
                 blurRadius: 12,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -262,7 +262,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
           'Your cycle. Your data.',
           textAlign: TextAlign.center,
           style: AppTypography.body2.copyWith(
-            color: AppColors.textSecondary,
+            color: Colors.white.withAlpha(200),
             letterSpacing: 0.4,
           ),
         ),
@@ -287,8 +287,8 @@ class _LockScreenState extends ConsumerState<LockScreen>
               Icons.fingerprint_rounded,
               size: 64,
               color: _biometricActive
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+                  ? Colors.white
+                  : Colors.white.withAlpha(150),
             ),
           ),
         ),
@@ -302,7 +302,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
             key: ValueKey(_biometricActive),
             textAlign: TextAlign.center,
             style: AppTypography.body2.copyWith(
-              color: AppColors.textSecondary,
+              color: Colors.white.withAlpha(200),
               letterSpacing: 0.3,
             ),
           ),
@@ -323,7 +323,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
               'Try again',
               textAlign: TextAlign.center,
               style: AppTypography.button.copyWith(
-                color: AppColors.primary,
+                color: Colors.white,
                 fontSize: 15,
               ),
             ),
@@ -343,7 +343,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
             'Use PIN instead',
             textAlign: TextAlign.center,
             style: AppTypography.button.copyWith(
-              color: AppColors.primary,
+              color: Colors.white,
               fontSize: 15,
             ),
           ),
@@ -418,7 +418,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
                 onPressed: _onBackspace,
                 icon: const Icon(
                   Icons.backspace_outlined,
-                  color: AppColors.textPrimary,
+                  color: Colors.white,
                 ),
                 iconSize: AppSizes.iconLarge,
                 splashRadius: AppSizes.pinKeySize / 2,
@@ -491,9 +491,9 @@ class _PinKeyState extends State<_PinKey>
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.surface,
+                  color: Colors.white.withAlpha(30),
                   border: Border.all(
-                    color: AppColors.divider,
+                    color: Colors.white.withAlpha(60),
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -514,7 +514,9 @@ class _PinKeyState extends State<_PinKey>
                 child: Center(
                   child: Text(
                     widget.digit,
-                    style: AppTypography.pinDigit,
+                    style: AppTypography.pinDigit.copyWith(
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

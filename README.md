@@ -1,33 +1,16 @@
-# Cara
+# cara
 
-Privacy-first period tracker. All data stored locally, encrypted.
-
-## Features
-
-- Cycle tracking with predictions
-- Encrypted local storage (SQLCipher)
-- Biometric authentication
-- Custom shader-based UI
-- No cloud, no accounts, no data sharing
-
-## Tech Stack
-
-- Flutter 3.6+
-- Drift + SQLCipher (encrypted local database)
-- Riverpod (state management)
-- Custom fragment shaders
+A new Flutter project.
 
 ## Getting Started
 
-```bash
-flutter pub get
-flutter run
-```
+This project is a starting point for a Flutter application.
 
-## Privacy
+A few resources to get you started if this is your first Flutter project:
 
-Sola stores everything on your device. Your data never leaves your phone.
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-## License
-
-MIT
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.

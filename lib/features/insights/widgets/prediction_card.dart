@@ -80,7 +80,7 @@ class PredictionCard extends StatelessWidget {
     final String message;
     if (cyclesNeeded > 0) {
       final s = cyclesNeeded == 1 ? '' : 's';
-      message = 'Log $cyclesNeeded more complete cycle${s} to unlock predictions.';
+      message = 'Log $cyclesNeeded more complete cycle$s to unlock predictions.';
     } else {
       message = 'Calculating your first prediction...';
     }

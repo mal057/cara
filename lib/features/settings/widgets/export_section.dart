@@ -11,7 +11,7 @@ import '../../../data/models/export_data_model.dart';
 import '../../../providers/cycle_providers.dart';
 import '../../../providers/export_providers.dart';
 import '../../../services/export/export_service.dart';
-import '../../shared/widgets/sola_button.dart';
+import '../../shared/widgets/cara_button.dart';
 
 /// Inline export widget embedded in the Data section of SettingsScreen.
 ///
@@ -145,7 +145,7 @@ class _ExportSectionState extends ConsumerState<ExportSection> {
             }).toList(),
           ),
           const SizedBox(height: AppSizes.space20),
-          SolaButton(
+          CaraButton(
             label: isGenerating ? 'Generating...' : 'Export ${_format.displayName}',
             isFullWidth: true,
             isLoading: isGenerating,

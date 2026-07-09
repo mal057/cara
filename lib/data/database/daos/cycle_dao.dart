@@ -57,6 +57,15 @@ class CycleDao extends DatabaseAccessor<AppDatabase> with _$CycleDaoMixin {
     return row == null ? null : _rowToModel(row);
   }
 
+  /// Returns ALL cycles (both open and closed) ordered by start_date ascending.
+  /// Used by the calendar provider to assign phase colors across multiple cycles.
+  Future<List<CycleModel>> getAllCyclesSorted() async {
+    final rows = await (select(cyclesTable)
+          ..orderBy([(t) => OrderingTerm.asc(t.startDate)]))
+        .get();
+    return rows.map(_rowToModel).toList();
+  }
+
   /// Inserts a new cycle row and returns the auto-generated row id.
   Future<int> insertCycle(CyclesTableCompanion cycle) =>
       into(cyclesTable).insert(cycle);

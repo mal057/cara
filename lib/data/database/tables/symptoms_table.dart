@@ -23,6 +23,9 @@ class SymptomsTable extends Table {
   /// Flutter icon identifier string (e.g. 'Icons.mood'). NOT NULL.
   TextColumn get iconName => text()();
 
+  /// Optional emoji string for mood symptoms. NULL for non-mood symptoms.
+  TextColumn get emoji => text().nullable()();
+
   /// Sort order for display in the symptom grid. NOT NULL.
   IntColumn get displayOrder => integer()();
 }

@@ -5,6 +5,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/constants/symptom_definitions.dart';
 import '../../../core/enums/symptom_severity.dart';
+import '../../shared/widgets/symptom_icon.dart';
 
 /// Map from symptom definition ID to the currently selected severity.
 ///
@@ -154,7 +155,7 @@ class _SymptomChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(definition.icon, size: AppSizes.iconSmall, color: contentColor),
+              SymptomIcon(icon: definition.icon, emoji: definition.emoji, size: AppSizes.iconSmall, color: contentColor),
               const SizedBox(width: AppSizes.tinyGap),
               Text(
                 definition.name,

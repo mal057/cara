@@ -126,6 +126,14 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     return success;
   }
 
+  /// Marks the session as authenticated without completing onboarding.
+  ///
+  /// Called after PIN setup succeeds so the database provider can open
+  /// during subsequent onboarding steps (e.g. cycle setup).
+  void markAuthenticated() {
+    state = state.copyWith(isAuthenticated: true);
+  }
+
   /// Marks onboarding complete after PIN setup. Sets session as authenticated.
   void completeOnboarding() {
     state = state.copyWith(isOnboardingComplete: true, isAuthenticated: true);

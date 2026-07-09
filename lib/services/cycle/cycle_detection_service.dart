@@ -58,7 +58,12 @@ class CycleDetectionService {
     final allCycles = await _loadAllCycles();
     for (final cycle in allCycles) {
       if (!desiredStarts.contains(_dateOnly(cycle.startDate))) {
-        await _deleteCycle(cycle.id);
+        // Only delete if the cycle has no period logs at all
+        final logs = await _periodLogDao.getLogsForCycle(cycle.id);
+        if (logs.isEmpty) {
+          await _deleteCycle(cycle.id);
+        }
+        // Otherwise: leave it — processLog will update it if needed
       }
     }
     final remaining = await _loadAllCycles();
@@ -97,17 +102,19 @@ class CycleDetectionService {
         cycleId = existing.id;
         final existingEndStr =
             existing.endDate?.toIso8601String().substring(0, 10);
+        // Only treat non-null computed values as changes — null means
+        // "we don't know" and should never overwrite existing data.
         if (existing.periodLength != periodLen ||
-            existingEndStr != endDateStr ||
-            existing.cycleLength != cycleLen) {
+            (endDateStr != null && existingEndStr != endDateStr) ||
+            (cycleLen != null && existing.cycleLength != cycleLen)) {
           await _cycleDao.updateCycle(
             cycleId,
             CyclesTableCompanion(
               endDate: endDateStr != null
                   ? Value(endDateStr)
-                  : const Value(null),
+                  : const Value.absent(),
               cycleLength:
-                  cycleLen != null ? Value(cycleLen) : const Value(null),
+                  cycleLen != null ? Value(cycleLen) : const Value.absent(),
               periodLength: Value(periodLen),
               updatedAt: Value(now),
             ),
